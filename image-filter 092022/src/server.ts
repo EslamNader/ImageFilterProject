@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 (async () => {
@@ -28,15 +28,15 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   /**************************************************************************** */
 
-  app.get('/filteredimage', async (req, res) => {
-    const { image_url } = req.query;
+  app.get('/filteredimage', async ( req: Request, res: Response )  => {
+    //const { image_url } = req.query;
+    let { image_url } :{image_url:string} = req.query
     console.log(image_url);
     if (!image_url) res.status(404).json({ error: "Image link not found" })
     await filterImageFromURL(image_url).then(async (response) => {
       await res.status(200).sendFile(response);
-      setTimeout(() => {
-        deleteLocalFiles([response]);
-      }, 10000);
+      res.on('finish', ()=> {deleteLocalFiles([response])});
+     
     }).catch((error) => res.status(500).json({
       error
     }));
